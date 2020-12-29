@@ -1,3 +1,4 @@
+ -
  ##Non blocking interactive 2-way communication GUI via PyQt.
  Perfect, you are here. So you are probably struggling just as I have had. Carry on, feedbacks welcomed!
  
