@@ -7,7 +7,16 @@ import pyqtgraph as pg
 import sys  # We need sys so that we can pass argv to QApplication
 import os
 
-
+from threading import Thread
+import serial
+import time
+import collections
+import matplotlib.pyplot as plt
+import matplotlib.animation as animation
+import struct
+import pandas as pd
+import copy as copy
+import numpy as np
 
 # Now use a palette to switch to dark colors:
 palette = QtGui.QPalette()
@@ -26,22 +35,8 @@ palette.setColor(QtGui.QPalette.Highlight, QtGui.QColor(42, 130, 218))
 palette.setColor(QtGui.QPalette.HighlightedText, Qt.black)
 
 
-
-#!/usr/bin/env python
-
-from threading import Thread
-import serial
-import time
-import collections
-import matplotlib.pyplot as plt
-import matplotlib.animation as animation
-import struct
-import pandas as pd
-import copy as copy
-import numpy as np
-
-
-class serialPlot:
+""" SERIAL CLASS """
+class SerialPlot:
     def __init__(self, bufferLength = 100, dataNumBytes = 2):
         self.plotMaxLength = bufferLength
         self.dataType = None
@@ -78,13 +73,12 @@ class serialPlot:
             print("Failed to connect with " + str(self.serialPort) + ' at ' + str(self.serialBaud) + ' BAUD.')
         
     def writeSerial(self):
-        toSend = self.TxBuffer
-        toSend = toSend.encode()
-        print(toSend)
-        self.serialConnection.write(toSend)
-        self.serialConnection.flushInput()
-        self.serialConnection.flushOutput()
-        self.TxBuffer = ""
+        toSend = self.TxBuffer                  # Get the Buffer
+        toSend = toSend.encode()                # Encode to Bytes
+        self.serialConnection.write(toSend)     # Send Over Serial
+        self.serialConnection.flushInput()      # Flush Serial (HW) buffer
+        self.serialConnection.flushOutput()     # Flush Serial (HW) buffer
+        self.TxBuffer = ""                      # Empty Tx SW buffer
 
         
     def readSerialStart(self):
@@ -147,6 +141,7 @@ class serialPlot:
             print("Nothing to Close")
 
 
+""" GUI CLASS """
 class PlotWindow(QWidget):                       
     def __init__(self,parent,name,data):
         super().__init__()
@@ -397,7 +392,7 @@ class Window(QWidget):
     def serialToggle(self):
         try:
             if self.pushButtonSerial.isChecked():
-                self.s = serialPlot(self.maxPlotLength, int(self.LineEditBytesNmbr.text()))   # initializes all required variables
+                self.s = SerialPlot(self.maxPlotLength, int(self.LineEditBytesNmbr.text()))   # initializes all required variables
                 self.s.connectSerial(self.LineEditPort.text(),self.LineEditBaud.text())               
             else:
                 self.s.close()
